@@ -7,7 +7,8 @@
     <template #content>
       <p>{{ $t("prompts.requestGlobalShareMessage") }}</p>
       <p>
-        <strong>{{ $t("prompts.path") }}:</strong> {{ req?.path || "" }}
+        <strong>{{ $t("prompts.path") }}:</strong>
+        {{ promptData?.path || "" }}
       </p>
       <textarea
         v-model="message"
@@ -51,7 +52,7 @@ const { t } = useI18n();
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
-const req = layoutStore.currentPrompt;
+const promptData = layoutStore.currentPrompt;
 const message = ref("");
 
 const closeHovers = () => {
@@ -59,13 +60,13 @@ const closeHovers = () => {
 };
 
 const requestShare = async () => {
-  if (!req || !req.path) {
+  if (!promptData || !promptData.path) {
     $showError(new Error("No path specified"));
     return;
   }
 
   try {
-    await api.requestGlobalShare(req.path, message.value);
+    await api.requestGlobalShare(promptData.path, message.value);
     $showSuccess(t("success.globalShareRequested"));
     layoutStore.closeHovers();
   } catch (err) {

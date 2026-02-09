@@ -1,9 +1,5 @@
 package share
 
-import (
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
-)
-
 // GlobalShareRequestBackend is the interface for global share request storage.
 type GlobalShareRequestBackend interface {
 	GetRequest(id uint) (*GlobalShareRequest, error)
@@ -85,11 +81,7 @@ func (s *GlobalShareStorage) GetAll() ([]*GlobalShare, error) {
 
 // GetByPath retrieves a global share by path.
 func (s *GlobalShareStorage) GetByPath(path string) (*GlobalShare, error) {
-	share, err := s.back.GetGlobalShareByPath(path)
-	if err != nil {
-		return nil, fberrors.ErrNotExist
-	}
-	return share, nil
+	return s.back.GetGlobalShareByPath(path)
 }
 
 // Save saves a global share.
