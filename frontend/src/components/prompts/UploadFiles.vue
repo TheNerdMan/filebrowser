@@ -61,6 +61,18 @@
               }"
             ></div>
           </div>
+          <div class="scan-status" v-if="upload.scanStatus">
+            <span v-if="upload.scanStatus === 'uploading'">{{ t("prompts.uploading") }}</span>
+            <span v-else-if="upload.scanStatus === 'scanning'" class="scanning">
+              <i class="material-icons spinning">security</i> {{ t("prompts.scanning") }}
+            </span>
+            <span v-else-if="upload.scanStatus === 'clean'" class="clean">
+              <i class="material-icons">check_circle</i> {{ t("prompts.clean") }}
+            </span>
+            <span v-else-if="upload.scanStatus === 'security_risk'" class="security-risk">
+              <i class="material-icons">warning</i> {{ t("prompts.securityRisk") }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -218,5 +230,51 @@ const abortAll = () => {
   min-width: 19ch;
   width: auto;
   text-align: left;
+}
+
+.scan-status {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.scan-status .material-icons {
+  font-size: 1rem;
+}
+
+.scan-status .scanning {
+  color: #2196f3;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.scan-status .clean {
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.scan-status .security-risk {
+  color: #f44336;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 2s linear infinite;
 }
 </style>

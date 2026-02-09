@@ -10,6 +10,7 @@ import Settings from "@/views/Settings.vue";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import Shares from "@/views/settings/Shares.vue";
+import SecurityRisks from "@/views/settings/SecurityRisks.vue";
 import Errors from "@/views/Errors.vue";
 import { useAuthStore } from "@/stores/auth";
 import { baseURL, name } from "@/utils/constants";
@@ -27,6 +28,7 @@ const titles = {
   GlobalSettings: "settings.globalSettings",
   Users: "settings.users",
   User: "settings.user",
+  SecurityRisks: "settings.securityRisks",
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
   InternalServerError: "errors.internal",
@@ -108,6 +110,14 @@ const routes = [
             path: "users/:id",
             name: "User",
             component: User,
+            meta: {
+              requiresAdmin: true,
+            },
+          },
+          {
+            path: "security-risks",
+            name: "SecurityRisks",
+            component: SecurityRisks,
             meta: {
               requiresAdmin: true,
             },

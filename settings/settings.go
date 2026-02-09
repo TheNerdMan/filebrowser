@@ -38,6 +38,8 @@ type Settings struct {
 	FileMode              fs.FileMode         `json:"fileMode"`
 	DirMode               fs.FileMode         `json:"dirMode"`
 	HideDotfiles          bool                `json:"hideDotfiles"`
+	SecurityWebhook       string              `json:"securityWebhook"` // Webhook URL for security notifications
+	QuarantinePath        string              `json:"quarantinePath"`  // Path for quarantined files
 }
 
 // GetRules implements rules.Provider.

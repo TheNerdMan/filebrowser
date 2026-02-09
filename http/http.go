@@ -23,6 +23,7 @@ func NewHandler(
 	store *storage.Storage,
 	server *settings.Server,
 	assetsFs fs.FS,
+	scannerSvc ScannerService,
 ) (http.Handler, error) {
 	server.Clean()
 
@@ -63,10 +64,15 @@ func NewHandler(
 	api.PathPrefix("/resources").Handler(monkey(resourcePutHandler, "/api/resources")).Methods("PUT")
 	api.PathPrefix("/resources").Handler(monkey(resourcePatchHandler(fileCache), "/api/resources")).Methods("PATCH")
 
-	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache), "/api/tus")).Methods("POST")
+	api.PathPrefix("/tus").Handler(monkey(tusPostHandler(uploadCache, scannerSvc), "/api/tus")).Methods("POST")
 	api.PathPrefix("/tus").Handler(monkey(tusHeadHandler(uploadCache), "/api/tus")).Methods("HEAD", "GET")
-	api.PathPrefix("/tus").Handler(monkey(tusPatchHandler(uploadCache), "/api/tus")).Methods("PATCH")
+	api.PathPrefix("/tus").Handler(monkey(tusPatchHandler(uploadCache, scannerSvc), "/api/tus")).Methods("PATCH")
 	api.PathPrefix("/tus").Handler(monkey(tusDeleteHandler(uploadCache), "/api/tus")).Methods("DELETE")
+
+	api.PathPrefix("/scan/status").Handler(monkey(scanStatusHandler(scannerSvc), "/api/scan/status")).Methods("GET")
+	api.PathPrefix("/scan/risks").Handler(monkey(scanRisksHandler(scannerSvc), "/api/scan/risks")).Methods("GET")
+	api.PathPrefix("/scan/risks").Handler(monkey(scanRiskDeleteHandler(scannerSvc), "/api/scan/risks")).Methods("DELETE")
+	api.PathPrefix("/scan/override").Handler(monkey(scanRiskOverrideHandler(scannerSvc), "/api/scan/override")).Methods("POST")
 
 	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
 
@@ -78,7 +84,7 @@ func NewHandler(
 	api.Handle("/settings", monkey(settingsGetHandler, "")).Methods("GET")
 	api.Handle("/settings", monkey(settingsPutHandler, "")).Methods("PUT")
 
-	api.PathPrefix("/raw").Handler(monkey(rawHandler, "/api/raw")).Methods("GET")
+	api.PathPrefix("/raw").Handler(monkey(rawHandler(scannerSvc), "/api/raw")).Methods("GET")
 	api.PathPrefix("/preview/{size}/{path:.*}").
 		Handler(monkey(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview")).Methods("GET")
 	api.PathPrefix("/command").Handler(monkey(commandsHandler, "/api/command")).Methods("GET")
@@ -86,7 +92,7 @@ func NewHandler(
 	api.PathPrefix("/subtitle").Handler(monkey(subtitleHandler, "/api/subtitle")).Methods("GET")
 
 	public := api.PathPrefix("/public").Subrouter()
-	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
+	public.PathPrefix("/dl").Handler(monkey(publicDlHandler(scannerSvc), "/api/public/dl/")).Methods("GET")
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
 
 	return stripPrefix(server.BaseURL, r), nil

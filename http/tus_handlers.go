@@ -1,6 +1,7 @@
 package fbhttp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,11 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/filebrowser/filebrowser/v2/files"
+)
+
+const (
+	// scanTimeout is the maximum time to wait for a file scan to complete
+	scanTimeout = 2 * time.Minute
 )
 
 // keepUploadActive periodically touches the cache entry to prevent eviction during transfer
@@ -39,7 +45,7 @@ func keepUploadActive(cache UploadCache, filePath string) func() {
 	}
 }
 
-func tusPostHandler(cache UploadCache) handleFunc {
+func tusPostHandler(cache UploadCache, scannerSvc ScannerService) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 			return http.StatusForbidden, nil
@@ -153,7 +159,7 @@ func tusHeadHandler(cache UploadCache) handleFunc {
 	})
 }
 
-func tusPatchHandler(cache UploadCache) handleFunc {
+func tusPatchHandler(cache UploadCache, scannerSvc ScannerService) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Create || !d.Check(r.URL.Path) {
 			return http.StatusForbidden, nil
@@ -232,6 +238,15 @@ func tusPatchHandler(cache UploadCache) handleFunc {
 		if newOffset >= uploadLength {
 			cache.Complete(file.RealPath())
 			_ = d.RunHook(func() error { return nil }, "upload", r.URL.Path, "", d.user)
+			
+			// Trigger security scan asynchronously if scanner is available
+			if scannerSvc.IsAvailable() {
+				go func() {
+					ctx, cancel := context.WithTimeout(context.Background(), scanTimeout)
+					defer cancel()
+					_ = scannerSvc.ScanFile(ctx, file.RealPath(), d.user.ID)
+				}()
+			}
 		}
 
 		return http.StatusNoContent, nil

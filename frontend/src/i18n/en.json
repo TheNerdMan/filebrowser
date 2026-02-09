@@ -47,7 +47,8 @@
     "saveChanges": "Save changes",
     "editAsText": "Edit as Text",
     "increaseFontSize": "Increase font size",
-    "decreaseFontSize": "Decrease font size"
+    "decreaseFontSize": "Decrease font size",
+    "actions": "Actions"
   },
   "download": {
     "downloadFile": "Download File",
@@ -159,7 +160,11 @@
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
     "resolution": "Resolution",
-    "discardEditorChanges": "Are you sure you wish to discard the changes you've made?"
+    "discardEditorChanges": "Are you sure you wish to discard the changes you've made?",
+    "uploading": "Uploading",
+    "scanning": "Security Scanning",
+    "clean": "Uploaded",
+    "securityRisk": "Security Risk"
   },
   "search": {
     "images": "Images",
@@ -260,7 +265,21 @@
     "userUpdated": "User updated!",
     "username": "Username",
     "users": "Users",
-    "currentPassword": "Your Current Password"
+    "currentPassword": "Your Current Password",
+    "securityRisks": "Security Risks",
+    "securityRisksHelp": "Files flagged by security scanning as potential threats. You can review, override as false positive, quarantine, or delete them here.",
+    "noSecurityRisks": "No security risks found. All files are clean.",
+    "threat": "Threat Detected",
+    "user": "User",
+    "status": "Status",
+    "securityRisk": "Security Risk",
+    "overridden": "False Positive",
+    "quarantine": "Quarantine",
+    "markAsFalsePositive": "Mark as False Positive",
+    "deleteSecurityRiskConfirm": "Are you sure you want to permanently delete the file '{name}'? This action cannot be undone.",
+    "quarantineConfirm": "Are you sure you want to move '{name}' to quarantine? The file will be isolated but not deleted.",
+    "overrideConfirm": "Are you sure you want to mark '{name}' as a false positive? This will allow normal users to download the file.",
+    "actions": "Actions"
   },
   "sidebar": {
     "help": "Help",
