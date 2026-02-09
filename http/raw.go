@@ -108,8 +108,16 @@ func rawHandler(scannerSvc ScannerService) handleFunc {
 		if !file.IsDir {
 			fullPath := d.user.FullPath(r.URL.Path)
 			scanInfo, err := scannerSvc.GetScanStatus(fullPath)
-			if err == nil && scanInfo != nil && scanInfo.Status == scanner.StatusSecurityRisk {
-				return http.StatusForbidden, fmt.Errorf("file flagged as security risk: %s", scanInfo.Signature)
+			if err == nil && scanInfo != nil {
+				// Block if security_risk, but allow if admin and overridden
+				if scanInfo.Status == scanner.StatusSecurityRisk {
+					// Allow admins to download if they explicitly override
+					allowOverride := r.URL.Query().Get("admin_override") == "true" && d.user.Perm.Admin
+					if !allowOverride {
+						return http.StatusForbidden, fmt.Errorf("file flagged as security risk: %s", scanInfo.Signature)
+					}
+					log.Printf("Admin %d overriding download block for file: %s", d.user.ID, fullPath)
+				}
 			}
 		}
 

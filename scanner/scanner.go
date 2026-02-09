@@ -18,6 +18,7 @@ const (
 	StatusClean        ScanStatus = "clean"
 	StatusSecurityRisk ScanStatus = "security_risk"
 	StatusScanError    ScanStatus = "scan_error"
+	StatusOverridden   ScanStatus = "overridden" // Admin marked as false positive
 )
 
 // ScanResult represents the result of a virus scan

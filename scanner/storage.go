@@ -7,12 +7,14 @@ import (
 
 // FileScanInfo stores scan metadata for a file
 type FileScanInfo struct {
-	Path       string     `json:"path"`
-	UserID     uint       `json:"userId"`
-	Status     ScanStatus `json:"status"`
-	Signature  string     `json:"signature,omitempty"`
-	ScannedAt  time.Time  `json:"scannedAt,omitempty"`
-	UploadedAt time.Time  `json:"uploadedAt"`
+	Path         string     `json:"path"`
+	UserID       uint       `json:"userId"`
+	Status       ScanStatus `json:"status"`
+	Signature    string     `json:"signature,omitempty"`
+	ScannedAt    time.Time  `json:"scannedAt,omitempty"`
+	UploadedAt   time.Time  `json:"uploadedAt"`
+	OverriddenBy uint       `json:"overriddenBy,omitempty"` // Admin who overrode the status
+	OverriddenAt time.Time  `json:"overriddenAt,omitempty"`
 }
 
 // Store manages file scan information

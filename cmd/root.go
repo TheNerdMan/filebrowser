@@ -248,7 +248,8 @@ user created with the credentials from options "username" and "password".`,
 		var scanner fbhttp.ScannerService
 		clamavScanner := fbhttp.NewClamAVScanner(clamavHost, clamavPort)
 		scannerStore := fbhttp.NewMemoryScanStore()
-		scanner = fbhttp.NewScannerService(clamavScanner, scannerStore)
+		// Pass settings getter to scanner service for webhook and quarantine
+		scanner = fbhttp.NewScannerService(clamavScanner, scannerStore, st.Storage.Settings.Get)
 		
 		if scanner.IsAvailable() {
 			log.Println("ClamAV scanner is available and enabled")

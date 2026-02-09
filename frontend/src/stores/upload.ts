@@ -174,8 +174,9 @@ export const useUploadStore = defineStore("upload", () => {
           }
         }
       } catch (error) {
-        // If scan status check fails, assume clean
-        upload.scanStatus = "clean";
+        // If scan status check fails, mark as error instead of assuming clean
+        upload.scanStatus = "scan_error";
+        console.error("Failed to check scan status:", error);
       }
     };
 

@@ -9,7 +9,7 @@ type Upload = {
   rawProgress: {
     sentBytes: number;
   };
-  scanStatus?: "uploading" | "scanning" | "clean" | "security_risk" | "scan_error";
+  scanStatus?: "uploading" | "scanning" | "clean" | "security_risk" | "scan_error" | "overridden";
 };
 
 interface UploadEntry {

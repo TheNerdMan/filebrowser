@@ -20,7 +20,8 @@
           <th>{{ t("settings.user") }}</th>
           <th>{{ t("settings.threat") }}</th>
           <th>{{ t("prompts.lastModified") }}</th>
-          <th>{{ t("buttons.delete") }}</th>
+          <th>{{ t("settings.status") }}</th>
+          <th>{{ t("buttons.actions") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -30,10 +31,38 @@
           <td class="threat-signature">{{ risk.signature || "Unknown" }}</td>
           <td>{{ formatDate(risk.scannedAt) }}</td>
           <td>
+            <span v-if="risk.status === 'overridden'" class="status-overridden">
+              <i class="material-icons">check_circle</i>
+              {{ t("settings.overridden") }}
+            </span>
+            <span v-else class="status-risk">
+              <i class="material-icons">warning</i>
+              {{ t("settings.securityRisk") }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button
+              v-if="risk.status !== 'overridden'"
+              @click="overrideRisk(risk)"
+              class="button button--flat button--primary"
+              :aria-label="t('settings.markAsFalsePositive')"
+              :title="t('settings.markAsFalsePositive')"
+            >
+              <i class="material-icons">verified_user</i>
+            </button>
+            <button
+              @click="quarantineRisk(risk)"
+              class="button button--flat button--warning"
+              :aria-label="t('settings.quarantine')"
+              :title="t('settings.quarantine')"
+            >
+              <i class="material-icons">archive</i>
+            </button>
             <button
               @click="deleteRisk(risk)"
               class="button button--flat button--danger"
               :aria-label="t('buttons.delete')"
+              :title="t('buttons.delete')"
             >
               <i class="material-icons">delete</i>
             </button>
@@ -74,10 +103,40 @@ const deleteRisk = async (risk: ScanInfo) => {
   }
 
   try {
-    await scannerApi.deleteSecurityRisk(risk.path);
+    await scannerApi.deleteSecurityRisk(risk.path, "delete");
     risks.value = risks.value.filter((r) => r.path !== risk.path);
   } catch (error) {
     console.error("Failed to delete security risk:", error);
+    alert(t("prompts.error"));
+  }
+};
+
+const quarantineRisk = async (risk: ScanInfo) => {
+  if (!confirm(t("settings.quarantineConfirm", { name: getFileName(risk.path) }))) {
+    return;
+  }
+
+  try {
+    await scannerApi.deleteSecurityRisk(risk.path, "quarantine");
+    // Reload the list after quarantine
+    await loadRisks();
+  } catch (error) {
+    console.error("Failed to quarantine file:", error);
+    alert(t("prompts.error"));
+  }
+};
+
+const overrideRisk = async (risk: ScanInfo) => {
+  if (!confirm(t("settings.overrideConfirm", { name: getFileName(risk.path) }))) {
+    return;
+  }
+
+  try {
+    await scannerApi.overrideSecurityRisk(risk.path);
+    // Reload the list to show updated status
+    await loadRisks();
+  } catch (error) {
+    console.error("Failed to override security risk:", error);
     alert(t("prompts.error"));
   }
 };
@@ -156,12 +215,47 @@ td {
   font-weight: 500;
 }
 
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .button--danger {
   color: #f44336;
 }
 
 .button--danger:hover {
   background: rgba(244, 67, 54, 0.1);
+}
+
+.button--warning {
+  color: #ff9800;
+}
+
+.button--warning:hover {
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.button--primary {
+  color: #2196f3;
+}
+
+.button--primary:hover {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.status-overridden {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #4caf50;
+}
+
+.status-risk {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #f44336;
 }
 
 @keyframes spin {

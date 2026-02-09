@@ -72,6 +72,7 @@ func NewHandler(
 	api.PathPrefix("/scan/status").Handler(monkey(scanStatusHandler(scannerSvc), "/api/scan/status")).Methods("GET")
 	api.PathPrefix("/scan/risks").Handler(monkey(scanRisksHandler(scannerSvc), "/api/scan/risks")).Methods("GET")
 	api.PathPrefix("/scan/risks").Handler(monkey(scanRiskDeleteHandler(scannerSvc), "/api/scan/risks")).Methods("DELETE")
+	api.PathPrefix("/scan/override").Handler(monkey(scanRiskOverrideHandler(scannerSvc), "/api/scan/override")).Methods("POST")
 
 	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
 
