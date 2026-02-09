@@ -71,6 +71,7 @@ func NewHandler(
 
 	api.PathPrefix("/scan/status").Handler(monkey(scanStatusHandler(scannerSvc), "/api/scan/status")).Methods("GET")
 	api.PathPrefix("/scan/risks").Handler(monkey(scanRisksHandler(scannerSvc), "/api/scan/risks")).Methods("GET")
+	api.PathPrefix("/scan/risks").Handler(monkey(scanRiskDeleteHandler(scannerSvc), "/api/scan/risks")).Methods("DELETE")
 
 	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
 
@@ -82,7 +83,7 @@ func NewHandler(
 	api.Handle("/settings", monkey(settingsGetHandler, "")).Methods("GET")
 	api.Handle("/settings", monkey(settingsPutHandler, "")).Methods("PUT")
 
-	api.PathPrefix("/raw").Handler(monkey(rawHandler, "/api/raw")).Methods("GET")
+	api.PathPrefix("/raw").Handler(monkey(rawHandler(scannerSvc), "/api/raw")).Methods("GET")
 	api.PathPrefix("/preview/{size}/{path:.*}").
 		Handler(monkey(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview")).Methods("GET")
 	api.PathPrefix("/command").Handler(monkey(commandsHandler, "/api/command")).Methods("GET")
@@ -90,7 +91,7 @@ func NewHandler(
 	api.PathPrefix("/subtitle").Handler(monkey(subtitleHandler, "/api/subtitle")).Methods("GET")
 
 	public := api.PathPrefix("/public").Subrouter()
-	public.PathPrefix("/dl").Handler(monkey(publicDlHandler, "/api/public/dl/")).Methods("GET")
+	public.PathPrefix("/dl").Handler(monkey(publicDlHandler(scannerSvc), "/api/public/dl/")).Methods("GET")
 	public.PathPrefix("/share").Handler(monkey(publicShareHandler, "/api/public/share/")).Methods("GET")
 
 	return stripPrefix(server.BaseURL, r), nil

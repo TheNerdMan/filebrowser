@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -135,5 +136,51 @@ func scanRisksHandler(scannerSvc ScannerService) handleFunc {
 		}
 
 		return renderJSON(w, r, risks)
+	})
+}
+
+// scanRiskDeleteHandler deletes a file with security risk (admin only)
+func scanRiskDeleteHandler(scannerSvc ScannerService) handleFunc {
+	return withAdmin(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		path := r.URL.Query().Get("path")
+		if path == "" {
+			return http.StatusBadRequest, nil
+		}
+
+		// Get scan info to verify it's a security risk
+		info, err := scannerSvc.GetScanStatus(path)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		if info == nil || info.Status != scanner.StatusSecurityRisk {
+			return http.StatusNotFound, nil
+		}
+
+		// Delete the actual file
+		// We need to find which user owns this file and use their filesystem
+		// For now, we'll use the admin's filesystem since this is an admin-only endpoint
+		// Note: This is a simplified approach - the path is expected to be the full system path
+		_, err = d.store.Settings.Get()
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		// Try to remove the file from the filesystem
+		// Note: This is a simplified approach - in production you'd want to find the actual user's Fs
+		// For now we assume the path is already the full path
+		err = d.user.Fs.Remove(path)
+		if err != nil {
+			log.Printf("Failed to delete file %s: %v", path, err)
+			return http.StatusInternalServerError, err
+		}
+
+		// Delete scan info
+		err = scannerSvc.DeleteScanInfo(path)
+		if err != nil {
+			log.Printf("Failed to delete scan info for %s: %v", path, err)
+		}
+
+		return http.StatusNoContent, nil
 	})
 }

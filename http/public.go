@@ -113,14 +113,16 @@ var publicShareHandler = withHashFile(func(w http.ResponseWriter, r *http.Reques
 	return renderJSON(w, r, file)
 })
 
-var publicDlHandler = withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file := d.raw.(*files.FileInfo)
-	if !file.IsDir {
-		return rawFileHandler(w, r, file)
-	}
+func publicDlHandler(scannerSvc ScannerService) handleFunc {
+	return withHashFile(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		file := d.raw.(*files.FileInfo)
+		if !file.IsDir {
+			return rawFileHandler(w, r, file)
+		}
 
-	return rawDirHandler(w, r, d, file)
-})
+		return rawDirHandler(w, r, d, file, scannerSvc)
+	})
+}
 
 func authenticateShareRequest(r *http.Request, l *share.Link) (int, error) {
 	if l.PasswordHash == "" {

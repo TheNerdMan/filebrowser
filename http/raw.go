@@ -2,6 +2,7 @@ package fbhttp
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -79,34 +80,45 @@ func setContentDisposition(w http.ResponseWriter, r *http.Request, file *files.F
 	}
 }
 
-var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.user.Perm.Download {
-		return http.StatusAccepted, nil
-	}
+func rawHandler(scannerSvc ScannerService) handleFunc {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		if !d.user.Perm.Download {
+			return http.StatusAccepted, nil
+		}
 
-	file, err := files.NewFileInfo(&files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
-		Modify:     d.user.Perm.Modify,
-		Expand:     false,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
+		file, err := files.NewFileInfo(&files.FileOptions{
+			Fs:         d.user.Fs,
+			Path:       r.URL.Path,
+			Modify:     d.user.Perm.Modify,
+			Expand:     false,
+			ReadHeader: d.server.TypeDetectionByHeader,
+			Checker:    d,
+		})
+		if err != nil {
+			return errToStatus(err), err
+		}
+
+		if files.IsNamedPipe(file.Mode) {
+			setContentDisposition(w, r, file)
+			return 0, nil
+		}
+
+		// Check for security risks before allowing download
+		if !file.IsDir {
+			fullPath := d.user.FullPath(r.URL.Path)
+			scanInfo, err := scannerSvc.GetScanStatus(fullPath)
+			if err == nil && scanInfo != nil && scanInfo.Status == "security_risk" {
+				return http.StatusForbidden, fmt.Errorf("file flagged as security risk: %s", scanInfo.Signature)
+			}
+		}
+
+		if !file.IsDir {
+			return rawFileHandler(w, r, file)
+		}
+
+		return rawDirHandler(w, r, d, file, scannerSvc)
 	})
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	if files.IsNamedPipe(file.Mode) {
-		setContentDisposition(w, r, file)
-		return 0, nil
-	}
-
-	if !file.IsDir {
-		return rawFileHandler(w, r, file)
-	}
-
-	return rawDirHandler(w, r, d, file)
-})
+}
 
 func getFiles(d *data, path, commonPath string) ([]archives.FileInfo, error) {
 	if !d.Check(path) {
@@ -160,7 +172,7 @@ func getFiles(d *data, path, commonPath string) ([]archives.FileInfo, error) {
 	return archiveFiles, nil
 }
 
-func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.FileInfo) (int, error) {
+func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.FileInfo, scannerSvc ScannerService) (int, error) {
 	filenames, err := parseQueryFiles(r, file, d.user)
 	if err != nil {
 		return http.StatusInternalServerError, err
