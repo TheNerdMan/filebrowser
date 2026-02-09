@@ -264,7 +264,13 @@
     "userUpdated": "User updated!",
     "username": "Username",
     "users": "Users",
-    "currentPassword": "Your Current Password"
+    "currentPassword": "Your Current Password",
+    "securityRisks": "Security Risks",
+    "securityRisksHelp": "Files flagged by security scanning as potential threats. You can review and delete them here.",
+    "noSecurityRisks": "No security risks found. All files are clean.",
+    "threat": "Threat Detected",
+    "user": "User",
+    "deleteSecurityRiskConfirm": "Are you sure you want to delete the file '{name}'? This action cannot be undone."
   },
   "sidebar": {
     "help": "Help",

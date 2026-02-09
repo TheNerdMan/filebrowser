@@ -30,6 +30,11 @@
               {{ t("settings.userManagement") }}
             </li></router-link
           >
+          <router-link to="/settings/security-risks" v-if="user?.perm.admin"
+            ><li :class="{ active: $route.path === '/settings/security-risks' }">
+              {{ t("settings.securityRisks") }}
+            </li></router-link
+          >
         </ul>
       </div>
     </div>
