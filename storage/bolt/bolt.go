@@ -16,6 +16,8 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	shareStore := share.NewStorage(shareBackend{db: db})
 	settingsStore := settings.NewStorage(settingsBackend{db: db})
 	authStore := auth.NewStorage(authBackend{db: db}, userStore)
+	globalShareRequestStore := share.NewGlobalShareRequestStorage(globalShareRequestBackend{db: db})
+	globalShareStore := share.NewGlobalShareStorage(globalShareBackend{db: db})
 
 	err := save(db, "version", 2)
 	if err != nil {
@@ -23,9 +25,11 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	}
 
 	return &storage.Storage{
-		Auth:     authStore,
-		Users:    userStore,
-		Share:    shareStore,
-		Settings: settingsStore,
+		Auth:                authStore,
+		Users:               userStore,
+		Share:               shareStore,
+		Settings:            settingsStore,
+		GlobalShareRequest:  globalShareRequestStore,
+		GlobalShare:         globalShareStore,
 	}, nil
 }

@@ -75,6 +75,15 @@ func NewHandler(
 	api.PathPrefix("/share").Handler(monkey(sharePostHandler, "/api/share")).Methods("POST")
 	api.PathPrefix("/share").Handler(monkey(shareDeleteHandler, "/api/share")).Methods("DELETE")
 
+	// Global share endpoints
+	api.Path("/globalshare/request").Handler(monkey(globalShareRequestHandler, "/api/globalshare/request")).Methods("POST")
+	api.Path("/globalshare/requests").Handler(monkey(globalShareRequestListHandler, "/api/globalshare/requests")).Methods("GET")
+	api.Path("/globalshare/myrequests").Handler(monkey(globalShareMyRequestsHandler, "/api/globalshare/myrequests")).Methods("GET")
+	api.PathPrefix("/globalshare/requests/").Handler(monkey(globalShareRequestActionHandler, "/api/globalshare/requests/")).Methods("POST")
+	api.PathPrefix("/globalshare/requests/").Handler(monkey(globalShareRequestDeleteHandler, "/api/globalshare/requests/")).Methods("DELETE")
+	api.Path("/globalshare").Handler(monkey(globalShareListHandler, "/api/globalshare")).Methods("GET")
+	api.PathPrefix("/globalshare/").Handler(monkey(globalShareDeleteHandler, "/api/globalshare/")).Methods("DELETE")
+
 	api.Handle("/settings", monkey(settingsGetHandler, "")).Methods("GET")
 	api.Handle("/settings", monkey(settingsPutHandler, "")).Methods("PUT")
 
