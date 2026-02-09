@@ -48,6 +48,7 @@ interface Permissions {
   share: boolean;
   shell: boolean;
   upload: boolean;
+  manageGlobalShare: boolean;
 }
 
 interface Sorting {

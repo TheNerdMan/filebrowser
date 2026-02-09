@@ -47,7 +47,11 @@
     "saveChanges": "Save changes",
     "editAsText": "Edit as Text",
     "increaseFontSize": "Increase font size",
-    "decreaseFontSize": "Decrease font size"
+    "decreaseFontSize": "Decrease font size",
+    "requestGlobalShare": "Request Global Share",
+    "approve": "Approve",
+    "reject": "Reject",
+    "request": "Request"
   },
   "download": {
     "downloadFile": "Download File",
@@ -159,7 +163,11 @@
     "uploadMessage": "Select an option to upload.",
     "optionalPassword": "Optional password",
     "resolution": "Resolution",
-    "discardEditorChanges": "Are you sure you wish to discard the changes you've made?"
+    "discardEditorChanges": "Are you sure you wish to discard the changes you've made?",
+    "requestGlobalShare": "Request Global Share",
+    "requestGlobalShareMessage": "Request to add this file/folder to the global share so all users can access it.",
+    "path": "Path",
+    "messageOptional": "Optional message for administrators"
   },
   "search": {
     "images": "Images",
@@ -227,7 +235,8 @@
       "execute": "Execute commands",
       "modify": "Edit files",
       "rename": "Rename or move files and directories",
-      "share": "Share files"
+      "share": "Share files",
+      "manageGlobalShare": "Manage global shares"
     },
     "permissions": "Permissions",
     "permissionsHelp": "You can set the user to be an administrator or choose the permissions individually. If you select \"Administrator\", all of the other options will be automatically checked. The management of users remains a privilege of an administrator.\n",
@@ -243,6 +252,14 @@
     "shareDuration": "Share Duration",
     "shareManagement": "Share Management",
     "shareDeleted": "Share deleted!",
+    "globalShareManagement": "Global Share Management",
+    "pendingRequests": "Pending Requests",
+    "activeGlobalShares": "Active Global Shares",
+    "noPendingRequests": "No pending requests",
+    "noGlobalShares": "No global shares yet",
+    "requestedAt": "Requested At",
+    "addedAt": "Added At",
+    "message": "Message",
     "singleClick": "Use single clicks to open files and directories",
     "themes": {
       "default": "System default",
@@ -276,7 +293,11 @@
     "siteSettings": "Site Settings"
   },
   "success": {
-    "linkCopied": "Link copied!"
+    "linkCopied": "Link copied!",
+    "globalShareRequested": "Global share request submitted successfully!",
+    "requestApproved": "Request approved successfully!",
+    "requestRejected": "Request rejected successfully!",
+    "globalShareDeleted": "Global share deleted successfully!"
   },
   "time": {
     "days": "Days",
