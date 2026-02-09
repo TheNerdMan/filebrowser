@@ -26,6 +26,19 @@ The following environment variables can be set to configure ClamAV integration:
 - `CLAMAV_HOST`: Hostname of the ClamAV daemon (default: "localhost")
 - `CLAMAV_PORT`: Port of the ClamAV daemon (default: "3310")
 
+### Settings (Admin Configuration)
+
+Admins can configure the following in Settings → Global Settings:
+
+- **Security Webhook URL**: HTTP endpoint to receive security notifications
+  - Receives POST requests with JSON payload when threats detected
+  - Payload format: `{"event": "security_risk_detected", "path": "...", "userId": 1, "signature": "...", "timestamp": "..."}`
+  
+- **Quarantine Path**: Directory path for quarantined files
+  - Default: `/tmp/quarantine` if not configured
+  - Files are moved here automatically when threats detected
+  - Filenames include timestamp for tracking
+
 ### Docker Compose
 
 The `compose.yaml` has been updated to include ClamAV service:
@@ -83,7 +96,20 @@ Admins can access the Security Risks dashboard:
    - User who uploaded the file
    - Threat signature detected
    - Scan timestamp
-4. Delete security risk files directly from the dashboard
+   - Current status (Security Risk or Overridden)
+4. Take action on each file:
+   - **Override** (shield icon): Mark as false positive - file becomes available to all users
+   - **Quarantine** (archive icon): Move to quarantine folder for isolation
+   - **Delete** (trash icon): Permanently remove the file
+
+### Admin Download Override
+
+Admins can download security risk files for inspection:
+
+1. Navigate to the file in the file browser
+2. Add `?admin_override=true` to the download URL
+3. Download will proceed despite security flag
+4. Action is logged for audit purposes
 
 ## API Endpoints
 
@@ -111,6 +137,7 @@ Status values:
 - `clean` - No threats detected
 - `security_risk` - Threat detected
 - `scan_error` - Error during scanning
+- `overridden` - Admin marked as false positive
 
 ### List Security Risks (Admin Only)
 ```http
@@ -121,10 +148,21 @@ Returns all files flagged as security risks.
 
 ### Delete Security Risk (Admin Only)
 ```http
-DELETE /api/scan/risks?path=/full/path/to/file
+DELETE /api/scan/risks?path=/full/path/to/file&action=delete
 ```
 
-Deletes a file that has been flagged as a security risk.
+Permanently deletes a file that has been flagged as a security risk.
+
+**Query Parameters:**
+- `path`: Full system path to the file
+- `action`: `delete` (permanent removal) or `quarantine` (move to quarantine)
+
+### Override Security Risk (Admin Only)
+```http
+POST /api/scan/override?path=/full/path/to/file
+```
+
+Marks a security risk as a false positive. File becomes available to all users but admins can still see it was flagged.
 
 ## Testing
 
@@ -164,10 +202,15 @@ To test graceful degradation:
 - [ ] Upload a clean file - should show "Uploaded" with green checkmark
 - [ ] Upload EICAR test file - should show "Security Risk" with red warning
 - [ ] Try to download security risk file - should be blocked with 403 error
+- [ ] Admin downloads with `?admin_override=true` - should succeed
 - [ ] View Security Risks as admin - EICAR file should be listed
+- [ ] Override security risk - should mark as "False Positive"
+- [ ] Download overridden file as normal user - should work
+- [ ] Quarantine security risk file - should move to quarantine folder
 - [ ] Delete security risk file from admin panel - should be removed
 - [ ] Upload file with ClamAV stopped - should work without scanning
 - [ ] Upload multiple files - scan status should update for each
+- [ ] Configure webhook URL - should receive notification on threat detection
 
 ## Troubleshooting
 
@@ -195,8 +238,10 @@ To test graceful degradation:
 
 **Actions**:
 1. Review threat signature in Security Risks dashboard
-2. If confirmed false positive, delete the file from admin panel
-3. Consider updating ClamAV definitions: `docker compose restart clamav`
+2. Use the **Override** button (shield icon) to mark as false positive
+3. File will be marked as "overridden" and available for download by all users
+4. Admins can still see it's a flagged file in the dashboard
+5. Alternatively, use the **Quarantine** button to isolate the file for further review
 
 ## Architecture
 
@@ -250,11 +295,11 @@ Potential improvements for future versions:
 - Persistent storage for scan history (database integration)
 - Scan progress percentage for large files
 - Configurable scan policies (skip certain file types, size limits)
-- Quarantine folder for security risks
-- Email notifications for admins on threats detected
 - Integration with other scanning engines
 - Scan file on download in addition to upload
 - API rate limiting for scan endpoints
+- Scheduled scans of existing files
+- Detailed audit log of admin actions
 
 ## License
 
