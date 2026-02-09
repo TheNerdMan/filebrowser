@@ -72,7 +72,9 @@ func (s *MemoryStore) ListByStatus(status ScanStatus) ([]*FileScanInfo, error) {
 	var result []*FileScanInfo
 	for _, info := range s.files {
 		if info.Status == status {
-			result = append(result, info)
+			// Create a copy to prevent external modification
+			infoCopy := *info
+			result = append(result, &infoCopy)
 		}
 	}
 	return result, nil
@@ -85,7 +87,9 @@ func (s *MemoryStore) ListAll() ([]*FileScanInfo, error) {
 	
 	result := make([]*FileScanInfo, 0, len(s.files))
 	for _, info := range s.files {
-		result = append(result, info)
+		// Create a copy to prevent external modification
+		infoCopy := *info
+		result = append(result, &infoCopy)
 	}
 	return result, nil
 }

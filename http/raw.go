@@ -15,6 +15,7 @@ import (
 
 	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/fileutils"
+	"github.com/filebrowser/filebrowser/v2/scanner"
 	"github.com/filebrowser/filebrowser/v2/users"
 )
 
@@ -107,7 +108,7 @@ func rawHandler(scannerSvc ScannerService) handleFunc {
 		if !file.IsDir {
 			fullPath := d.user.FullPath(r.URL.Path)
 			scanInfo, err := scannerSvc.GetScanStatus(fullPath)
-			if err == nil && scanInfo != nil && scanInfo.Status == "security_risk" {
+			if err == nil && scanInfo != nil && scanInfo.Status == scanner.StatusSecurityRisk {
 				return http.StatusForbidden, fmt.Errorf("file flagged as security risk: %s", scanInfo.Signature)
 			}
 		}

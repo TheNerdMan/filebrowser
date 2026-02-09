@@ -170,8 +170,7 @@ export const useUploadStore = defineStore("upload", () => {
         } else if (status.status === "clean" || status.status === "security_risk" || status.status === "scan_error") {
           // Scan complete
           if (status.status === "security_risk") {
-            const $showError = inject<IToastError>("$showError");
-            $showError?.(new Error(`File ${upload.name} flagged as security risk: ${status.signature || "unknown threat"}`));
+            $showError(new Error(`File ${upload.name} flagged as security risk: ${status.signature || "unknown threat"}`));
           }
         }
       } catch (error) {

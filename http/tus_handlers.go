@@ -17,6 +17,11 @@ import (
 	"github.com/filebrowser/filebrowser/v2/files"
 )
 
+const (
+	// scanTimeout is the maximum time to wait for a file scan to complete
+	scanTimeout = 2 * time.Minute
+)
+
 // keepUploadActive periodically touches the cache entry to prevent eviction during transfer
 func keepUploadActive(cache UploadCache, filePath string) func() {
 	stop := make(chan bool)
@@ -237,7 +242,7 @@ func tusPatchHandler(cache UploadCache, scannerSvc ScannerService) handleFunc {
 			// Trigger security scan asynchronously if scanner is available
 			if scannerSvc.IsAvailable() {
 				go func() {
-					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+					ctx, cancel := context.WithTimeout(context.Background(), scanTimeout)
 					defer cancel()
 					_ = scannerSvc.ScanFile(ctx, file.RealPath(), d.user.ID)
 				}()

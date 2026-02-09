@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -157,20 +158,10 @@ func scanRiskDeleteHandler(scannerSvc ScannerService) handleFunc {
 			return http.StatusNotFound, nil
 		}
 
-		// Delete the actual file
-		// We need to find which user owns this file and use their filesystem
-		// For now, we'll use the admin's filesystem since this is an admin-only endpoint
-		// Note: This is a simplified approach - the path is expected to be the full system path
-		_, err = d.store.Settings.Get()
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-
-		// Try to remove the file from the filesystem
-		// Note: This is a simplified approach - in production you'd want to find the actual user's Fs
-		// For now we assume the path is already the full path
-		err = d.user.Fs.Remove(path)
-		if err != nil {
+		// Delete the actual file directly from the filesystem
+		// The path stored in scan info is the full system path
+		err = os.Remove(path)
+		if err != nil && !os.IsNotExist(err) {
 			log.Printf("Failed to delete file %s: %v", path, err)
 			return http.StatusInternalServerError, err
 		}
