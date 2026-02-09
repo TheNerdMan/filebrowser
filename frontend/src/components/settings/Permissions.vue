@@ -37,7 +37,11 @@
       {{ $t("settings.perm.share") }}
     </p>
     <p>
-      <input type="checkbox" :disabled="admin" v-model="perm.manageGlobalShare" />
+      <input
+        type="checkbox"
+        :disabled="admin"
+        v-model="perm.manageGlobalShare"
+      />
       {{ $t("settings.perm.manageGlobalShare") }}
     </p>
   </div>

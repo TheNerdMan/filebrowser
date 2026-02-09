@@ -6,7 +6,9 @@
 
     <template #content>
       <p>{{ $t("prompts.requestGlobalShareMessage") }}</p>
-      <p><strong>{{ $t("prompts.path") }}:</strong> {{ req?.path || "" }}</p>
+      <p>
+        <strong>{{ $t("prompts.path") }}:</strong> {{ req?.path || "" }}
+      </p>
       <textarea
         v-model="message"
         :placeholder="$t('prompts.messageOptional')"
@@ -61,7 +63,7 @@ const requestShare = async () => {
     $showError(new Error("No path specified"));
     return;
   }
-  
+
   try {
     await api.requestGlobalShare(req.path, message.value);
     $showSuccess(t("success.globalShareRequested"));

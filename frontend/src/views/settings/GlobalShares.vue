@@ -49,7 +49,9 @@
             <span>{{ t("settings.noPendingRequests") }}</span>
           </h2>
 
-          <h3 style="margin-top: 2em">{{ t("settings.activeGlobalShares") }}</h3>
+          <h3 style="margin-top: 2em">
+            {{ t("settings.activeGlobalShares") }}
+          </h3>
           <div v-if="globalShares.length > 0">
             <table>
               <tr>
@@ -86,7 +88,6 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { globalshare as api } from "@/api";
 import dayjs from "dayjs";
@@ -101,7 +102,6 @@ const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 const { t } = useI18n();
 
 const layoutStore = useLayoutStore();
-const authStore = useAuthStore();
 
 const error = ref<StatusError | null>(null);
 const pendingRequests = ref<GlobalShareRequest[]>([]);

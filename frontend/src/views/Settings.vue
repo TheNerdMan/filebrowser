@@ -15,7 +15,9 @@
               {{ t("settings.shareManagement") }}
             </li></router-link
           >
-          <router-link to="/settings/globalshares" v-if="user?.perm.admin || user?.perm.manageGlobalShare"
+          <router-link
+            to="/settings/globalshares"
+            v-if="user?.perm.admin || user?.perm.manageGlobalShare"
             ><li :class="{ active: $route.path === '/settings/globalshares' }">
               {{ t("settings.globalShareManagement") }}
             </li></router-link
