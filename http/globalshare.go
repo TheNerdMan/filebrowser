@@ -3,12 +3,18 @@ package fbhttp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
+
 	fberrors "github.com/filebrowser/filebrowser/v2/errors"
+	"github.com/filebrowser/filebrowser/v2/fileutils"
 	"github.com/filebrowser/filebrowser/v2/share"
 )
 
@@ -98,9 +104,39 @@ var globalShareRequestActionHandler = withUser(func(w http.ResponseWriter, r *ht
 	}
 
 	if action == "approve" {
-		// Create a global share entry
+		// Get the user who made the request to access their filesystem
+		requestUser, err := d.store.Users.Get(d.server.Root, req.UserID)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to get request user: %w", err)
+		}
+
+		// Define the global share directory path (relative to server root)
+		globalShareDir := filepath.Join(d.server.Root, ".globalshare")
+		
+		// Create global share directory if it doesn't exist
+		if err := os.MkdirAll(globalShareDir, 0755); err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to create global share directory: %w", err)
+		}
+
+		// Get the source file's real path
+		sourcePath := requestUser.FullPath(req.Path)
+		
+		// Create a unique destination filename to avoid conflicts
+		timestamp := time.Now().Unix()
+		baseName := filepath.Base(req.Path)
+		destFileName := fmt.Sprintf("%d_%s_%s", timestamp, req.Username, baseName)
+		destPath := filepath.Join(globalShareDir, destFileName)
+
+		// Copy the file/folder from the user's scope to the global share directory
+		// Use the OS filesystem for this operation since we're working with real paths
+		osFs := afero.NewOsFs()
+		if err := fileutils.Copy(osFs, sourcePath, destPath, 0644, 0755); err != nil {
+			return http.StatusInternalServerError, fmt.Errorf("failed to copy file to global share: %w", err)
+		}
+
+		// Create a global share entry with the new path
 		globalShare := &share.GlobalShare{
-			Path:         req.Path,
+			Path:         filepath.Join("/.globalshare", destFileName), // Virtual path for users
 			OriginalPath: req.Path,
 			UserID:       req.UserID,
 			Username:     req.Username,
@@ -109,6 +145,8 @@ var globalShareRequestActionHandler = withUser(func(w http.ResponseWriter, r *ht
 		}
 
 		if err := d.store.GlobalShare.Save(globalShare); err != nil {
+			// Cleanup the copied file if database save fails
+			os.RemoveAll(destPath)
 			return http.StatusInternalServerError, err
 		}
 
@@ -165,9 +203,9 @@ var globalShareListHandler = withUser(func(w http.ResponseWriter, r *http.Reques
 	return renderJSON(w, r, shares)
 })
 
-// Delete a global share - only for users with ManageGlobalShare permission
+// Delete a global share - only for admins
 var globalShareDeleteHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.user.Perm.ManageGlobalShare && !d.user.Perm.Admin {
+	if !d.user.Perm.Admin {
 		return http.StatusForbidden, nil
 	}
 

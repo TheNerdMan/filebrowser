@@ -1,10 +1,10 @@
 <template>
-  <base-modal>
-    <template #title>
+  <div class="card floating">
+    <div class="card-title">
       <h2>{{ $t("prompts.requestGlobalShare") }}</h2>
-    </template>
+    </div>
 
-    <template #content>
+    <div class="card-content">
       <p>{{ $t("prompts.requestGlobalShareMessage") }}</p>
       <p>
         <strong>{{ $t("prompts.path") }}:</strong>
@@ -16,11 +16,11 @@
         rows="4"
         style="width: 100%"
       ></textarea>
-    </template>
+    </div>
 
-    <template #action>
+    <div class="card-action">
       <button
-        class="button button--flat"
+        class="button button--flat button--grey"
         @click="closeHovers"
         :aria-label="$t('buttons.cancel')"
         :title="$t('buttons.cancel')"
@@ -35,12 +35,11 @@
       >
         {{ $t("buttons.request") }}
       </button>
-    </template>
-  </base-modal>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import BaseModal from "./BaseModal.vue";
 import { useLayoutStore } from "@/stores/layout";
 import { globalshare as api } from "@/api";
 import { inject, ref } from "vue";
