@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -113,8 +114,8 @@ var globalShareRequestActionHandler = withUser(func(w http.ResponseWriter, r *ht
 		// Define the global share directory path (relative to server root)
 		globalShareDir := filepath.Join(d.server.Root, ".globalshare")
 		
-		// Create global share directory if it doesn't exist
-		if err := os.MkdirAll(globalShareDir, 0755); err != nil {
+		// Create global share directory if it doesn't exist with restrictive permissions
+		if err := os.MkdirAll(globalShareDir, 0750); err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to create global share directory: %w", err)
 		}
 
@@ -129,8 +130,9 @@ var globalShareRequestActionHandler = withUser(func(w http.ResponseWriter, r *ht
 
 		// Copy the file/folder from the user's scope to the global share directory
 		// Use the OS filesystem for this operation since we're working with real paths
+		// Use restrictive permissions (read-only) for security
 		osFs := afero.NewOsFs()
-		if err := fileutils.Copy(osFs, sourcePath, destPath, 0644, 0755); err != nil {
+		if err := fileutils.Copy(osFs, sourcePath, destPath, 0440, 0750); err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("failed to copy file to global share: %w", err)
 		}
 
@@ -146,7 +148,10 @@ var globalShareRequestActionHandler = withUser(func(w http.ResponseWriter, r *ht
 
 		if err := d.store.GlobalShare.Save(globalShare); err != nil {
 			// Cleanup the copied file if database save fails
-			os.RemoveAll(destPath)
+			if removeErr := os.RemoveAll(destPath); removeErr != nil {
+				// Log the cleanup failure but return the original error
+				log.Printf("Failed to cleanup copied file %s after database error: %v", destPath, removeErr)
+			}
 			return http.StatusInternalServerError, err
 		}
 
