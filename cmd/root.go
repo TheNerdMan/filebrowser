@@ -235,7 +235,28 @@ user created with the credentials from options "username" and "password".`,
 			panic(err)
 		}
 
-		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs)
+		// Initialize scanner service
+		clamavHost := os.Getenv("CLAMAV_HOST")
+		clamavPort := os.Getenv("CLAMAV_PORT")
+		if clamavHost == "" {
+			clamavHost = "localhost"
+		}
+		if clamavPort == "" {
+			clamavPort = "3310"
+		}
+		
+		var scanner fbhttp.ScannerService
+		clamavScanner := fbhttp.NewClamAVScanner(clamavHost, clamavPort)
+		scannerStore := fbhttp.NewMemoryScanStore()
+		scanner = fbhttp.NewScannerService(clamavScanner, scannerStore)
+		
+		if scanner.IsAvailable() {
+			log.Println("ClamAV scanner is available and enabled")
+		} else {
+			log.Println("ClamAV scanner is not available, security scanning disabled")
+		}
+
+		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs, scanner)
 		if err != nil {
 			return err
 		}
