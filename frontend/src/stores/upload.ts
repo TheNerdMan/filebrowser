@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { useFileStore } from "./file";
 import { files as api } from "@/api";
+import * as scannerApi from "@/api/scanner";
 import buttons from "@/utils/buttons";
 import { computed, inject, markRaw, ref } from "vue";
 import * as tus from "@/api/tus";
@@ -57,6 +58,7 @@ export const useUploadStore = defineStore("upload", () => {
       rawProgress: markRaw({
         sentBytes: 0,
       }),
+      scanStatus: "uploading",
     };
 
     totalBytes.value += upload.totalBytes;
@@ -140,8 +142,46 @@ export const useUploadStore = defineStore("upload", () => {
     upload.sentBytes = upload.totalBytes;
     upload.file = null;
 
+    // Start polling for scan status if not a directory
+    if (upload.type !== "dir") {
+      upload.scanStatus = "scanning";
+      pollScanStatus(upload);
+    }
+
     activeUploads.value.delete(upload);
     processUploads();
+  };
+
+  const pollScanStatus = async (upload: Upload) => {
+    // Poll for scan status up to 10 times (20 seconds)
+    let attempts = 0;
+    const maxAttempts = 10;
+    const pollInterval = 2000; // 2 seconds
+
+    const poll = async () => {
+      try {
+        const status = await scannerApi.getScanStatus(upload.path);
+        upload.scanStatus = status.status;
+
+        // If still scanning and haven't exceeded max attempts, continue polling
+        if (status.status === "scanning" && attempts < maxAttempts) {
+          attempts++;
+          setTimeout(poll, pollInterval);
+        } else if (status.status === "clean" || status.status === "security_risk" || status.status === "scan_error") {
+          // Scan complete
+          if (status.status === "security_risk") {
+            const $showError = inject<IToastError>("$showError");
+            $showError?.(new Error(`File ${upload.name} flagged as security risk: ${status.signature || "unknown threat"}`));
+          }
+        }
+      } catch (error) {
+        // If scan status check fails, assume clean
+        upload.scanStatus = "clean";
+      }
+    };
+
+    // Start polling after a short delay to give the backend time to start scanning
+    setTimeout(poll, 1000);
   };
 
   const syncState = () => {
