@@ -19,6 +19,12 @@
             show="share"
           />
           <action
+            v-if="headerButtons.requestGlobalShare"
+            icon="public"
+            :label="t('buttons.requestGlobalShare')"
+            @action="requestGlobalShare"
+          />
+          <action
             v-if="headerButtons.rename"
             icon="mode_edit"
             :label="t('buttons.rename')"
@@ -96,6 +102,12 @@
         icon="share"
         :label="t('buttons.share')"
         show="share"
+      />
+      <action
+        v-if="headerButtons.requestGlobalShare"
+        icon="public"
+        :label="t('buttons.requestGlobalShare')"
+        @action="requestGlobalShare"
       />
       <action
         v-if="headerButtons.rename"
@@ -481,6 +493,7 @@ const headerButtons = computed(() => {
     delete: fileStore.selectedCount > 0 && authStore.user?.perm.delete,
     rename: fileStore.selectedCount === 1 && authStore.user?.perm.rename,
     share: fileStore.selectedCount === 1 && authStore.user?.perm.share,
+    requestGlobalShare: fileStore.selectedCount === 1,
     move: fileStore.selectedCount > 0 && authStore.user?.perm.rename,
     copy: fileStore.selectedCount > 0 && authStore.user?.perm.create,
   };
@@ -962,6 +975,16 @@ const download = () => {
 
       api.download(format, ...files);
     },
+  });
+};
+
+const requestGlobalShare = () => {
+  if (fileStore.req === null || fileStore.selectedCount !== 1) return;
+
+  const selectedItem = fileStore.req.items[fileStore.selected[0]];
+  layoutStore.showHover({
+    prompt: "request-global-share",
+    path: selectedItem.path,
   });
 };
 
